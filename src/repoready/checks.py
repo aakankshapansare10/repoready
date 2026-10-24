@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-
 README_NAMES = {
     "readme",
     "readme.md",
