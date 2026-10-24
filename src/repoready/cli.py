@@ -33,6 +33,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="print the findings as JSON",
     )
     parser.add_argument(
+        "--output",
+        type=Path,
+        help="save JSON output to this file",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="allow replacing an existing output file",
+    )
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {__version__}",
@@ -41,9 +51,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
-    """Check the requested folder and print text or JSON results."""
+    """Check the requested folder and print or save the results."""
     parser = build_parser()
     args = parser.parse_args()
+
+    if args.output is not None and not args.json:
+        parser.error("--output requires --json")
+    if args.force and args.output is None:
+        parser.error("--force requires --output")
+
     project_path = args.path.expanduser().resolve()
 
     if not project_path.exists():
@@ -115,7 +131,28 @@ def main() -> int:
     }
 
     if args.json:
-        print(json.dumps(report, indent=2))
+        report_text = json.dumps(report, indent=2) + "\n"
+        if args.output is None:
+            print(report_text, end="")
+            return 0
+
+        output_path = args.output.expanduser().resolve()
+        if output_path.is_dir():
+            print(f"Error: output path is a folder: {output_path}", file=sys.stderr)
+            return 2
+        if output_path.exists() and not args.force:
+            print(
+                f"Error: output file already exists: {output_path}. "
+                "Use --force to replace it.",
+                file=sys.stderr,
+            )
+            return 2
+        try:
+            output_path.write_text(report_text, encoding="utf-8")
+        except OSError as error:
+            print(f"Error: cannot write report: {error}", file=sys.stderr)
+            return 2
+        print(f"JSON report saved: {output_path}")
         return 0
 
     print(f"RepoReady scan: {project_path}")

@@ -20,7 +20,7 @@ On pushes and pull requests, GitHub Actions installs the project with its develo
 1. Accept a project folder from the command line. **Done**
 2. Inspect files in that folder safely. **Done**
 3. Add more checks and turn findings into a clear score. **First score done; more checks planned**
-4. Export a report people can share. **JSON output added**
+4. Export a report people can share. **JSON output and file saving added**
 5. Package the tool so it is easy to install.
 
 ## Start here
@@ -33,12 +33,13 @@ py -m venv .venv
 py -m pip install -e .
 ```
 
-Print a human-readable checklist or a JSON report:
+Print a human-readable checklist or JSON, or save the report to a file:
 
 ```powershell
 repoready .
 repoready . --json
+repoready . --json --output report.json
+repoready . --json --output report.json --force
 ```
 
-The JSON report includes the project folder name, each check's result and relative file path, any suggested next step, and the score. It does not include the full local folder path.
-
+RepoReady refuses to replace an existing report unless you include `--force`. The JSON report includes the project folder name, each check's result and relative file path, any suggested next step, and the score. It does not include the full local folder path.
